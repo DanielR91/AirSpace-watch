@@ -89,9 +89,18 @@
 
       <!-- Live List Section -->
       <div class="flex-1 flex flex-col min-h-0 p-4">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-xs font-bold text-tacticalGreen uppercase tracking-wider glow-text-green">// TARGETS LIST (TOP 20 CRITICAL)</h2>
-          <span class="text-[10px] text-tacticalGreen/50 font-mono">AUTO-SORT: SQUAWK/RARE</span>
+        <!-- Tabs Header -->
+        <div class="flex border border-tacticalGreen/20 mb-3 text-xs font-bold font-mono rounded overflow-hidden">
+          <button id="tab-regional" class="flex-1 py-2 text-center text-black bg-tacticalGreen uppercase cursor-pointer select-none transition-all font-bold">
+            REGIONAL SCOPE
+          </button>
+          <button id="tab-popular" class="flex-1 py-2 text-center text-tacticalGreen/60 hover:text-tacticalGreen hover:bg-tacticalGreen/5 uppercase cursor-pointer select-none transition-all">
+            GLOBAL POPULAR
+          </button>
+        </div>
+        <div class="flex justify-between items-center mb-2">
+          <span id="tab-subtitle" class="text-[10px] text-tacticalGreen/70 font-mono">// LIVE TELEMETRY: MONITORED_FLIGHTS</span>
+          <span id="tab-sorting-desc" class="text-[10px] text-tacticalGreen/50 font-mono">AUTO-SORT: SQUAWK/RARE</span>
         </div>
         
         <!-- Table container scroll -->

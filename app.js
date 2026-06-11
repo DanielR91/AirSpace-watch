@@ -1,11 +1,13 @@
 // Airspace-Watch Radar Core Client Engine
 (function() {
   // Constants & State
-  const INGEST_INTERVAL_MS = 10000; // Ingest aviation data every 10 seconds
+  const INGEST_INTERVAL_MS = 5000; // 5-second polling loop
   const TRAIL_MAX = 20; // Maximum history coordinate tracker points
 
   let supabase = null;
   let flights = [];
+  let popularFlights = [];
+  let activeTab = 'regional'; // 'regional' or 'popular'
   let selectedFlightHex = null;
   let lastIngestTime = null;
 
@@ -46,6 +48,12 @@
   const lastUpdateTimeSpan = document.getElementById('last-update-time');
   const tableBody = document.getElementById('aircraft-table-body');
   const detailCard = document.getElementById('target-detail-card');
+
+  // Tabs selectors
+  const tabRegional = document.getElementById('tab-regional');
+  const tabPopular = document.getElementById('tab-popular');
+  const tabSubtitle = document.getElementById('tab-subtitle');
+  const tabSortingDesc = document.getElementById('tab-sorting-desc');
 
   // Stats elements
   const statTotal = document.getElementById('stat-total');
@@ -211,6 +219,40 @@
     window.addEventListener('mouseup', () => {
       isDragging = false;
     });
+
+    // Tabs Click Handlers
+    tabRegional.addEventListener('click', () => {
+      if (activeTab === 'regional') return;
+      activeTab = 'regional';
+      
+      // Update UI tabs state (phosphor highlight vs dim outline)
+      tabRegional.className = "flex-1 py-2 text-center text-black bg-tacticalGreen uppercase cursor-pointer select-none transition-all font-bold";
+      tabPopular.className = "flex-1 py-2 text-center text-tacticalGreen/60 hover:text-tacticalGreen hover:bg-tacticalGreen/5 uppercase cursor-pointer select-none transition-all";
+      tabSubtitle.innerText = "// LIVE TELEMETRY: MONITORED_FLIGHTS";
+      tabSortingDesc.innerText = "AUTO-SORT: SQUAWK/RARE";
+
+      selectedFlightHex = null;
+      detailCard.classList.add('hidden');
+      renderFlightsTable();
+    });
+
+    tabPopular.addEventListener('click', async () => {
+      if (activeTab === 'popular') return;
+      activeTab = 'popular';
+
+      // Update UI tabs state
+      tabRegional.className = "flex-1 py-2 text-center text-tacticalGreen/60 hover:text-tacticalGreen hover:bg-tacticalGreen/5 uppercase cursor-pointer select-none transition-all";
+      tabPopular.className = "flex-1 py-2 text-center text-black bg-tacticalGreen uppercase cursor-pointer select-none transition-all font-bold";
+      tabSubtitle.innerText = "// LIVE TELEMETRY: GLOBAL_POPULAR";
+      tabSortingDesc.innerText = "SORTED BY USER VIEW COUNT";
+
+      selectedFlightHex = null;
+      detailCard.classList.add('hidden');
+      
+      // Clear table and pull immediately
+      tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-tacticalGreen/40">Fetching global popular traffic...</td></tr>`;
+      await fetchGlobalPopularFlights();
+    });
   }
 
   // Trigger telemetry fetch, local scoring, caching to Supabase, and querying
@@ -235,7 +277,7 @@
       // Process and insert/upsert each flight
       await processAndCacheFlights(rawFlights);
 
-      // Query top 20 flights sorted by score descending
+      // Query top 20 flights sorted by score descending (kept running in background for canvas)
       const { data, error } = await supabase
         .from('monitored_flights')
         .select('*')
@@ -246,11 +288,15 @@
       
       flights = data || [];
       
-      // Update UI Stats
+      // Update UI Stats based on local ingestion
       updateStats(rawFlights.length, flights);
       
-      // Update table feed
-      renderFlightsTable();
+      // Update table feed or fetch global popular depending on active tab
+      if (activeTab === 'regional') {
+        renderFlightsTable();
+      } else {
+        await fetchGlobalPopularFlights();
+      }
 
       lastIngestTime = new Date();
       lastUpdateTimeSpan.innerText = lastIngestTime.toLocaleTimeString();
@@ -261,6 +307,24 @@
       console.error('Ingestion Sync Cycle Failed:', err);
       feedStatus.innerText = 'OFFLINE/ERR';
       feedStatus.className = 'text-tacticalRed font-bold';
+    }
+  }
+
+  // Fetch global popular flights from our Vercel Serverless Function
+  async function fetchGlobalPopularFlights() {
+    try {
+      const popularRes = await fetch('/api/popular');
+      if (popularRes.ok) {
+        const result = await popularRes.json();
+        popularFlights = result.flights || [];
+      }
+    } catch (err) {
+      console.error('Failed to fetch popular flights API:', err);
+    }
+    
+    // Render the table only if we are still on the popular tab
+    if (activeTab === 'popular') {
+      renderFlightsTable();
     }
   }
 
@@ -395,12 +459,15 @@
   function renderFlightsTable() {
     tableBody.innerHTML = '';
     
-    if (flights.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-tacticalGreen/40">No critical airframes logged.</td></tr>`;
+    const activeList = activeTab === 'regional' ? flights : popularFlights;
+    
+    if (activeList.length === 0) {
+      const msg = activeTab === 'regional' ? 'No critical airframes logged.' : 'No popular flights active or API rate-limited.';
+      tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-tacticalGreen/40">${msg}</td></tr>`;
       return;
     }
 
-    flights.forEach(f => {
+    activeList.forEach(f => {
       const isEmergency = f.squawk === "7700" || f.squawk === "7600" || f.squawk === "7500" || f.emergency !== "none";
       const rowClass = selectedFlightHex === f.hex 
         ? 'bg-tacticalGreen/20 text-tacticalGreen border-l-2 border-tacticalGreen font-bold cursor-pointer'
@@ -428,7 +495,13 @@
 
   function selectFlight(f) {
     selectedFlightHex = f.hex;
-    camera.isLocked = true;
+    
+    // Lock camera only for regional flights
+    if (activeTab === 'regional' && f.lat && f.lon) {
+      camera.isLocked = true;
+    } else {
+      camera.isLocked = false;
+    }
     
     // Highlight details card
     detailCard.classList.remove('hidden');
