@@ -463,7 +463,7 @@
     
     if (activeList.length === 0) {
       const msg = activeTab === 'regional' ? 'No critical airframes logged.' : 'No popular flights active or API rate-limited.';
-      tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-tacticalGreen/40">${msg}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-tacticalGreen/40">${msg}</td></tr>`;
       return;
     }
 
@@ -484,7 +484,6 @@
         <td class="p-2">${f.squawk}</td>
         <td class="p-2 truncate">${f.alt_baro.toLocaleString()}</td>
         <td class="p-2">${Math.round(f.gs)}</td>
-        <td class="p-2 truncate" title="${f.type}">${f.type}</td>
         <td class="p-2 truncate" title="${desc}">${desc}</td>
       `;
 
