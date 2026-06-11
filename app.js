@@ -73,15 +73,27 @@
   }
 
   // Check connection state & localStorage keys
-  function checkDatabaseConnection() {
-    let supabaseUrl = "__NEXT_PUBLIC_SUPABASE_URL__";
-    let supabaseKey = "__NEXT_PUBLIC_SUPABASE_KEY__";
+  async function checkDatabaseConnection() {
+    let supabaseUrl = "";
+    let supabaseKey = "";
 
-    // Fallback if placeholders are not replaced (local run or incomplete build)
-    if (supabaseUrl === "__NEXT_PUBLIC_SUPABASE_URL__" || !supabaseUrl) {
+    try {
+      // Attempt to load credentials from Vercel server-side runtime variables
+      const configRes = await fetch('/api/config');
+      if (configRes.ok) {
+        const config = await configRes.json();
+        supabaseUrl = config.supabaseUrl;
+        supabaseKey = config.supabaseKey;
+      }
+    } catch (err) {
+      console.warn('Config fetch from endpoint failed:', err);
+    }
+
+    // Fallback if environment variables are not served via API
+    if (!supabaseUrl) {
       supabaseUrl = localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL');
     }
-    if (supabaseKey === "__NEXT_PUBLIC_SUPABASE_KEY__" || !supabaseKey) {
+    if (!supabaseKey) {
       supabaseKey = localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY');
     }
 
@@ -109,14 +121,23 @@
     }
   }
 
-  function showConfigModal() {
-    let sbUrl = "__NEXT_PUBLIC_SUPABASE_URL__";
-    let sbKey = "__NEXT_PUBLIC_SUPABASE_KEY__";
+  async function showConfigModal() {
+    let sbUrl = "";
+    let sbKey = "";
 
-    if (sbUrl === "__NEXT_PUBLIC_SUPABASE_URL__" || !sbUrl) {
+    try {
+      const configRes = await fetch('/api/config');
+      if (configRes.ok) {
+        const config = await configRes.json();
+        sbUrl = config.supabaseUrl;
+        sbKey = config.supabaseKey;
+      }
+    } catch (err) {}
+
+    if (!sbUrl) {
       sbUrl = localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL') || '';
     }
-    if (sbKey === "__NEXT_PUBLIC_SUPABASE_KEY__" || !sbKey) {
+    if (!sbKey) {
       sbKey = localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY') || '';
     }
 
