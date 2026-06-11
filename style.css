@@ -96,3 +96,24 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+/* Layout Splits */
+.radar-left-pane {
+  width: 100%;
+}
+.radar-right-pane {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .radar-left-pane {
+    width: 60% !important;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+  .radar-right-pane {
+    width: 40% !important;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+}

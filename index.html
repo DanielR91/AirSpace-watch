@@ -52,8 +52,8 @@
   <!-- Main Grid Dashboard -->
   <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
     
-    <!-- Left Pane: Radar Visualizer -->
-    <section class="flex-1 flex flex-col items-center justify-center p-4 relative min-h-0 select-none">
+    <!-- Left Pane: Radar Visualizer (60% width on desktop) -->
+    <section class="radar-left-pane flex flex-col items-center justify-center p-4 relative min-h-0 select-none">
       <!-- Radar UI Wrap -->
       <div class="relative w-full max-w-[700px] aspect-square flex items-center justify-center">
         <!-- Canvas Layer -->
@@ -68,8 +68,8 @@
       </div>
     </section>
 
-    <!-- Right Pane: Table Feed & Stats -->
-    <section class="w-full md:w-[450px] lg:w-[500px] border-t md:border-t-0 md:border-l border-tacticalGreen/20 flex flex-col bg-[#020804]/90 backdrop-blur-md min-h-0">
+    <!-- Right Pane: Table Feed & Stats (40% width on desktop) -->
+    <section class="radar-right-pane border-t md:border-t-0 md:border-l border-tacticalGreen/20 flex flex-col bg-[#020804]/90 backdrop-blur-md min-h-0">
       
       <!-- Stats Summary Banner -->
       <div class="grid grid-cols-3 border-b border-tacticalGreen/20 text-center shrink-0">
@@ -105,14 +105,15 @@
         
         <!-- Table container scroll -->
         <div class="flex-1 overflow-y-auto border border-tacticalGreen/10 rounded bg-[#010502]/60">
-          <table class="w-full text-left text-xs font-mono border-collapse">
+          <table class="w-full text-left text-xs font-mono border-collapse table-fixed">
             <thead class="sticky top-0 bg-[#020b04] border-b border-tacticalGreen/20 text-tacticalGreen/70">
               <tr>
-                <th class="p-2 text-[10px] uppercase">Ident</th>
-                <th class="p-2 text-[10px] uppercase">Squawk</th>
-                <th class="p-2 text-[10px] uppercase">Alt (ft)</th>
-                <th class="p-2 text-[10px] uppercase">Spd (kt)</th>
-                <th class="p-2 text-[10px] uppercase">Type</th>
+                <th class="p-2 text-[10px] uppercase w-[15%]">Ident</th>
+                <th class="p-2 text-[10px] uppercase w-[12%]">Squawk</th>
+                <th class="p-2 text-[10px] uppercase w-[18%]">Alt (ft)</th>
+                <th class="p-2 text-[10px] uppercase w-[12%]">Spd (kt)</th>
+                <th class="p-2 text-[10px] uppercase w-[15%]">Type</th>
+                <th class="p-2 text-[10px] uppercase w-[28%]">Aircraft Spec / Description</th>
               </tr>
             </thead>
             <tbody id="aircraft-table-body">
