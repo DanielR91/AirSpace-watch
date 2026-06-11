@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airspace-Watch // Air Traffic Tactical Scope</title>
+  <!-- SEO Tags -->
+  <meta name="description" content="Tactical real-time airspace monitoring, flight tracking radar scope, and emergency alert telemetry dashboard powered by Supabase.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tacticalGreen: '#00ff66',
+            tacticalAmber: '#ffaa00',
+            tacticalRed: '#ff3333',
+            radarDark: '#030a05',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-full bg-[#010402] text-[#c0d0c5] flex flex-col antialiased">
+  
+  <!-- CRT overlay for premium aesthetics -->
+  <div class="crt-overlay"></div>
+
+  <!-- Header -->
+  <header class="border-b border-tacticalGreen/20 px-6 py-4 flex justify-between items-center bg-[#030d06]/80 backdrop-blur-md shrink-0">
+    <div class="flex items-center space-x-3">
+      <span class="w-3 h-3 bg-tacticalGreen rounded-full animate-pulse shadow-[0_0_8px_#00ff66]"></span>
+      <h1 class="text-xl font-bold tracking-widest text-tacticalGreen glow-text-green">AIRSPACE-WATCH // TAC-SCOPE</h1>
+    </div>
+    <div class="flex items-center space-x-6 text-xs text-tacticalGreen/70">
+      <div>
+        FEED STATUS: <span id="feed-status" class="text-tacticalGreen font-bold">STANDBY</span>
+      </div>
+      <div>
+        LAST UPDATE: <span id="last-update-time" class="font-mono">NEVER</span>
+      </div>
+      <button id="btn-config-reset" class="px-3 py-1 border border-tacticalGreen/30 hover:border-tacticalGreen hover:text-tacticalGreen rounded transition-all bg-transparent cursor-pointer">
+        RE-CONFIG
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Dashboard -->
+  <main class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+    
+    <!-- Left Pane: Radar Visualizer -->
+    <section class="flex-1 flex flex-col items-center justify-center p-4 relative min-h-0 select-none">
+      <!-- Radar UI Wrap -->
+      <div class="relative w-full max-w-[700px] aspect-square flex items-center justify-center">
+        <!-- Canvas Layer -->
+        <canvas id="radar-canvas" class="w-full h-full rounded-full bg-radarDark border border-tacticalGreen/30 shadow-[inset_0_0_50px_rgba(0,255,102,0.15),0_0_30px_rgba(0,255,102,0.05)] cursor-grab active:cursor-grabbing"></canvas>
+        
+        <!-- Interactive Zoom / Control Overlay on Canvas -->
+        <div class="absolute bottom-4 left-4 flex flex-col space-y-2">
+          <button id="zoom-in" class="w-8 h-8 flex items-center justify-center border border-tacticalGreen/40 bg-[#030d06]/80 text-tacticalGreen rounded-md hover:bg-tacticalGreen hover:text-black hover:shadow-[0_0_10px_#00ff66] transition-all font-bold font-mono text-sm">+</button>
+          <button id="zoom-out" class="w-8 h-8 flex items-center justify-center border border-tacticalGreen/40 bg-[#030d06]/80 text-tacticalGreen rounded-md hover:bg-tacticalGreen hover:text-black hover:shadow-[0_0_10px_#00ff66] transition-all font-bold font-mono text-sm">-</button>
+          <button id="radar-recenter" class="px-2 py-1 flex items-center justify-center border border-tacticalGreen/40 bg-[#030d06]/80 text-tacticalGreen rounded-md hover:bg-tacticalGreen hover:text-black hover:shadow-[0_0_10px_#00ff66] transition-all font-mono text-[10px] uppercase">Recenter</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Pane: Table Feed & Stats -->
+    <section class="w-full md:w-[450px] lg:w-[500px] border-t md:border-t-0 md:border-l border-tacticalGreen/20 flex flex-col bg-[#020804]/90 backdrop-blur-md min-h-0">
+      
+      <!-- Stats Summary Banner -->
+      <div class="grid grid-cols-3 border-b border-tacticalGreen/20 text-center shrink-0">
+        <div class="p-3 border-r border-tacticalGreen/20">
+          <div class="text-[10px] text-tacticalGreen/50 uppercase tracking-wider">TOTAL INGEST</div>
+          <div id="stat-total" class="text-lg font-bold text-tacticalGreen font-mono">0</div>
+        </div>
+        <div class="p-3 border-r border-tacticalGreen/20">
+          <div class="text-[10px] text-tacticalGreen/50 uppercase tracking-wider">EMERGENCIES</div>
+          <div id="stat-emergencies" class="text-lg font-bold text-tacticalRed font-mono animate-pulse">0</div>
+        </div>
+        <div class="p-3">
+          <div class="text-[10px] text-tacticalGreen/50 uppercase tracking-wider font-mono">MILITARY</div>
+          <div id="stat-military" class="text-lg font-bold text-tacticalAmber font-mono">0</div>
+        </div>
+      </div>
+
+      <!-- Live List Section -->
+      <div class="flex-1 flex flex-col min-h-0 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold text-tacticalGreen uppercase tracking-wider glow-text-green">// TARGETS LIST (TOP 20 CRITICAL)</h2>
+          <span class="text-[10px] text-tacticalGreen/50 font-mono">AUTO-SORT: SQUAWK/RARE</span>
+        </div>
+        
+        <!-- Table container scroll -->
+        <div class="flex-1 overflow-y-auto border border-tacticalGreen/10 rounded bg-[#010502]/60">
+          <table class="w-full text-left text-xs font-mono border-collapse">
+            <thead class="sticky top-0 bg-[#020b04] border-b border-tacticalGreen/20 text-tacticalGreen/70">
+              <tr>
+                <th class="p-2 text-[10px] uppercase">Ident</th>
+                <th class="p-2 text-[10px] uppercase">Squawk</th>
+                <th class="p-2 text-[10px] uppercase">Alt (ft)</th>
+                <th class="p-2 text-[10px] uppercase">Spd (kt)</th>
+                <th class="p-2 text-[10px] uppercase">Type</th>
+              </tr>
+            </thead>
+            <tbody id="aircraft-table-body">
+              <!-- Dynamically populated rows -->
+              <tr>
+                <td colspan="5" class="p-8 text-center text-tacticalGreen/40">Waiting for data telemetry sync...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Selected Plane Detail Card -->
+      <div id="target-detail-card" class="border-t border-tacticalGreen/20 p-4 bg-[#030e06] hidden shrink-0">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <div id="detail-callsign" class="text-base font-bold text-tacticalGreen glow-text-green">UNTK</div>
+            <div id="detail-hex" class="text-[10px] text-tacticalGreen/60">HEX: A5BB17</div>
+          </div>
+          <span id="detail-squawk-badge" class="px-2 py-0.5 border border-tacticalGreen text-[10px] font-bold text-tacticalGreen bg-tacticalGreen/10 rounded">SQUAWK 0000</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[11px] text-tacticalGreen/80 font-mono">
+          <div>REG: <span id="detail-reg" class="text-white">N469AN</span></div>
+          <div>TYPE: <span id="detail-type" class="text-white">A21N</span></div>
+          <div>ALTITUDE: <span id="detail-alt" class="text-white">35,000 ft</span></div>
+          <div>SPEED: <span id="detail-speed" class="text-white">450 kt</span></div>
+          <div>V/S: <span id="detail-vs" class="text-white">+1,200 fpm</span></div>
+          <div>COORDS: <span id="detail-coords" class="text-white">37.61, -122.38</span></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Supabase Setup Modal Connection Overlay -->
+    <div id="supabase-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
+      <div class="w-full max-w-md bg-[#020a04] border border-tacticalGreen/40 rounded-lg p-6 shadow-[0_0_30px_rgba(0,255,102,0.2)] glow-border font-mono">
+        <h2 class="text-lg font-bold text-tacticalGreen glow-text-green border-b border-tacticalGreen/20 pb-2 mb-4">// DATABASE SYNC REQUIRED</h2>
+        <p class="text-xs text-tacticalGreen/70 mb-4 leading-relaxed">
+          Airspace-Watch uses Supabase to persist flight vectors, scoring, and history trails. Please input your credentials below. Credentials will be securely cached in your local session space.
+        </p>
+        <form id="supabase-config-form" class="space-y-4">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-tacticalGreen/80 mb-1">SUPABASE URL</label>
+            <input type="url" id="sb-url" required placeholder="https://your-project.supabase.co" class="w-full px-3 py-2 bg-black border border-tacticalGreen/30 text-tacticalGreen focus:outline-none focus:border-tacticalGreen focus:ring-1 focus:ring-tacticalGreen rounded font-mono text-sm">
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-tacticalGreen/80 mb-1">SUPABASE ANON KEY</label>
+            <input type="password" id="sb-anon-key" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 bg-black border border-tacticalGreen/30 text-tacticalGreen focus:outline-none focus:border-tacticalGreen focus:ring-1 focus:ring-tacticalGreen rounded font-mono text-sm">
+          </div>
+          <div class="pt-2">
+            <button type="submit" class="w-full py-2 bg-tacticalGreen hover:bg-tacticalGreen/90 text-black font-bold uppercase rounded cursor-pointer transition-all shadow-[0_0_15px_rgba(0,255,102,0.3)] hover:shadow-[0_0_25px_rgba(0,255,102,0.6)]">
+              CONNECT TRANSMITTER
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  <!-- Supabase JS Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Main Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
