@@ -1,14 +1,4 @@
 {
-  "version": 2,
-  "cleanUrls": true,
-  "routes": [
-    {
-      "src": "/api/ingest",
-      "dest": "/api/ingest.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  "outputDirectory": ".",
+  "cleanUrls": true
 }
