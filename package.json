@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Tactical real-time flight tracking dashboard",
   "main": "index.html",
+  "scripts": {
+    "build": "sed -i \"s|__NEXT_PUBLIC_SUPABASE_URL__|${NEXT_PUBLIC_SUPABASE_URL}|g\" app.js && sed -i \"s|__NEXT_PUBLIC_SUPABASE_KEY__|${NEXT_PUBLIC_SUPABASE_KEY}|g\" app.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.0"
   }

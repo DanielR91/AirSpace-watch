@@ -74,8 +74,16 @@
 
   // Check connection state & localStorage keys
   function checkDatabaseConnection() {
-    const supabaseUrl = window.process?.env?.NEXT_PUBLIC_SUPABASE_URL || localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL');
-    const supabaseKey = window.process?.env?.NEXT_PUBLIC_SUPABASE_KEY || localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY');
+    let supabaseUrl = "__NEXT_PUBLIC_SUPABASE_URL__";
+    let supabaseKey = "__NEXT_PUBLIC_SUPABASE_KEY__";
+
+    // Fallback if placeholders are not replaced (local run or incomplete build)
+    if (supabaseUrl === "__NEXT_PUBLIC_SUPABASE_URL__" || !supabaseUrl) {
+      supabaseUrl = localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL');
+    }
+    if (supabaseKey === "__NEXT_PUBLIC_SUPABASE_KEY__" || !supabaseKey) {
+      supabaseKey = localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY');
+    }
 
     // 1. Guard Against Null Ingestion Keys
     if (!supabaseUrl || !supabaseKey) {
@@ -102,8 +110,16 @@
   }
 
   function showConfigModal() {
-    const sbUrl = window.process?.env?.NEXT_PUBLIC_SUPABASE_URL || localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL') || '';
-    const sbKey = window.process?.env?.NEXT_PUBLIC_SUPABASE_KEY || localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY') || '';
+    let sbUrl = "__NEXT_PUBLIC_SUPABASE_URL__";
+    let sbKey = "__NEXT_PUBLIC_SUPABASE_KEY__";
+
+    if (sbUrl === "__NEXT_PUBLIC_SUPABASE_URL__" || !sbUrl) {
+      sbUrl = localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL') || '';
+    }
+    if (sbKey === "__NEXT_PUBLIC_SUPABASE_KEY__" || !sbKey) {
+      sbKey = localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY') || '';
+    }
+
     sbUrlInput.value = sbUrl;
     sbAnonKeyInput.value = sbKey;
     supabaseModal.classList.remove('hidden');
