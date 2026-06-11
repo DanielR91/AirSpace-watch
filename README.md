@@ -8,7 +8,7 @@
  / ___ |_/ / / _, _/ ___/ / ____/ ___ / /___ / /___    |  /|  / / ___ |/ /   / / / __  /__  /  
 /_/  |_/___//_/ |_|/____//_/   /_/  |_\____//_____/    |__/|__/ /_/  |_/_/   /_/ /_/ /_/ /_/   
                                                                                                
-                     -- TACTICAL FLIGHT TELEMETRY SYSTEM v1.0.0 --
+                     -- TACTICAL FLIGHT TELEMETRY SYSTEM v1.1.0 --
 ========================================================================
 ```
 
@@ -38,24 +38,30 @@
 * **Continuous Sweep Effect**: An animated glowing sweep line rotates continuously, highlighting active aircraft targets as it passes them.
 * **Vector Trailing (Decay Trails)**: Visualizes historical flight paths with line segments connecting coordinate history points, utilizing alpha decay to keep tracking visualizer lines clean and performant.
 * **Camera Controls**: Supports click-and-drag panning, zoom-in, zoom-out, and auto-recenter options to control the tactical radar viewport.
-* **Auto-Centering Camera Lock**: Clicking any flight row in the tabular log centers and locks the camera view onto that flight, tracking its movements dynamically via LERP (Linear Interpolation) interpolation.
+* **Auto-Centering Camera Lock**: Clicking any flight row in the regional table centers and locks the camera view onto that flight, tracking its movements dynamically via LERP (Linear Interpolation) interpolation.
 
-### 📋 Live Critical Log Table (Top 20)
-* **Real-Time Priority Feed**: Lists the top 20 most critical or unique airframe targets currently tracked, updated automatically.
+### 🎛️ Dual Tab Panel Controls
+* **[ REGIONAL SCOPE ]**:
+  * Displays the top 20 most critical or unique airframe targets inside our local radar range, updated automatically.
+  * Connects directly to Supabase (`monitored_flights`) to pull real-time cached entries.
+  * Supports interactive lock-on panning to highlight coordinates.
+* **[ GLOBAL POPULAR ]**:
+  * Displays the top 20 globally tracked flights retrieved from live user metrics.
+  * Pauses local database table querying when active, leaving the background local radar mapping running.
+  * Fills rows with global callsigns, registrations, and transponder vectors.
+
+### 📋 Live Data Feed Table
+* **Real-Time Priority Feed**: Lists the active targets on the selected tab, polling every **5 seconds**.
 * **Visual Alert Tones**: High-priority records (active emergency squawks like 7700, 7600, or 7500) flash in tactical red to command operator attention.
 * **Detailed Vector Breakdown**: Click-selecting a target displays a comprehensive HUD card highlighting registration info, aircraft description, barometric rate, ground speed, and coordinates.
 
-### 📊 Ingestion Scoring Engine
+### 📊 Ingestion Scoring Engine (Regional Scope)
 The system parses active aviation feeds (`airplanes.live` and `adsb.lol`) and scores airframes dynamically to surface critical traffic:
 * **Active Emergency Squawks (7700 / 7600 / 7500)**: $+10,000$ priority units.
 * **Military Registrations / Transponders**: $+2,000$ priority units.
 * **Heavy/Rare Airframes (B-52, C-17, C-5, A380, etc.)**: $+1,500$ priority units.
 * **Rapid Vertical Ascent/Descent (>2000 fpm)**: $+800$ priority units.
 * **High Ground Speed (>450 knots)**: Speed proportional scaling units.
-
-### 🔌 Intelligent Credential Mapping
-* **Dynamic API Credentials Access**: Automatically queries a secure server-side endpoint `/api/config` to check for Vercel environment variables first, bypassing setup prompts entirely in private/incognito tabs if variables are configured.
-* **Local Session Overrides**: A "RE-CONFIG" panel allows manual entry and override of Supabase credentials saved safely to `localStorage`.
 
 ---
 
@@ -65,10 +71,11 @@ The system parses active aviation feeds (`airplanes.live` and `adsb.lol`) and sc
 AirSpace-Watch/
 ├── api/
 │   ├── config.js         # Serves runtime environment variables securely
-│   └── ingest.js         # Optional background API telemetry database ingest
+│   ├── ingest.js         # Optional background API telemetry database ingest
+│   └── popular.js        # Retrieves and parses global popular flight metrics
 ├── app.js                # Canvas render loop, scoring engine, panning controls, Supabase client
 ├── build.js              # Standalone Node script to override local placeholders
-├── index.html            # Core grid layout wrapper with Tailwind CSS CDN
+├── index.html            # Core grid layout wrapper with tab buttons and Tailwind CSS CDN
 ├── package.json          # Node dependencies and Vercel build phase target script
 ├── schema.sql            # Database schema, indexing, and anonymous RLS setup
 ├── style.css             # CRT overlay, matrices green, glow effects, scrollbar custom styling
