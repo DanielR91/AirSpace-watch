@@ -74,11 +74,11 @@
 
   // Check connection state & localStorage keys
   function checkDatabaseConnection() {
-    const sbUrl = localStorage.getItem('AIRSPACE_SB_URL');
-    const sbKey = localStorage.getItem('AIRSPACE_SB_KEY');
+    const supabaseUrl = window.process?.env?.NEXT_PUBLIC_SUPABASE_URL || localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL');
+    const supabaseKey = window.process?.env?.NEXT_PUBLIC_SUPABASE_KEY || localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY');
 
     // 1. Guard Against Null Ingestion Keys
-    if (!sbUrl || !sbKey) {
+    if (!supabaseUrl || !supabaseKey) {
       showConfigModal();
       feedStatus.innerText = 'NO KEYS';
       feedStatus.className = 'text-tacticalRed font-bold';
@@ -87,7 +87,7 @@
 
     try {
       // Initialize Supabase client
-      supabase = window.supabase.createClient(sbUrl, sbKey);
+      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
       hideConfigModal();
       feedStatus.innerText = 'CONNECTED';
       feedStatus.className = 'text-tacticalGreen font-bold';
@@ -102,8 +102,8 @@
   }
 
   function showConfigModal() {
-    const sbUrl = localStorage.getItem('AIRSPACE_SB_URL') || '';
-    const sbKey = localStorage.getItem('AIRSPACE_SB_KEY') || '';
+    const sbUrl = window.process?.env?.NEXT_PUBLIC_SUPABASE_URL || localStorage.getItem('supabase_url') || localStorage.getItem('AIRSPACE_SB_URL') || '';
+    const sbKey = window.process?.env?.NEXT_PUBLIC_SUPABASE_KEY || localStorage.getItem('supabase_key') || localStorage.getItem('AIRSPACE_SB_KEY') || '';
     sbUrlInput.value = sbUrl;
     sbAnonKeyInput.value = sbKey;
     supabaseModal.classList.remove('hidden');
@@ -117,8 +117,12 @@
     // Config Form Submit
     supabaseForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      localStorage.setItem('AIRSPACE_SB_URL', sbUrlInput.value.trim());
-      localStorage.setItem('AIRSPACE_SB_KEY', sbAnonKeyInput.value.trim());
+      const inputUrl = sbUrlInput.value.trim();
+      const inputKey = sbAnonKeyInput.value.trim();
+      localStorage.setItem('supabase_url', inputUrl);
+      localStorage.setItem('supabase_key', inputKey);
+      localStorage.setItem('AIRSPACE_SB_URL', inputUrl);
+      localStorage.setItem('AIRSPACE_SB_KEY', inputKey);
       checkDatabaseConnection();
     });
 
